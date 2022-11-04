@@ -1,0 +1,153 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "apiManagementServiceName": {
+            "type": "String",
+            "metadata": {
+                "description": "The name of the API Management service instance"
+            }
+        },
+        "publisherEmail": {
+            "minLength": 1,
+            "type": "String",
+            "metadata": {
+                "description": "The email address of the owner of the service"
+            }
+        },
+        "publisherName": {
+            "minLength": 1,
+            "type": "String",
+            "metadata": {
+                "description": "The name of the owner of the service"
+            }
+        },
+        "sku": {
+            "allowedValues": [
+                "Developer",
+                "Standard",
+                "Premium"
+            ],
+            "type": "String",
+            "metadata": {
+                "description": "The pricing tier of this API Management service"
+            }
+        },
+        "skuCount": {
+            "defaultValue": 1,
+            "allowedValues": [
+                1,
+                2
+            ],
+            "type": "Int",
+            "metadata": {
+                "description": "The instance size of this API Management service."
+            }
+        },
+        "location": {
+            "defaultValue": "[resourceGroup().location]",
+            "type": "String",
+            "metadata": {
+                "description": "Location for all resources."
+            }
+        },
+        "insightId": {
+            "type": "String",
+            "metadata": {
+                "description": "Here is the resource ID of the application insight that will be connected with the APIM"
+            }
+        },
+        "insightName": {
+            "type": "String",
+            "metadata": {
+                "description": "Here is the resource name of the application insight that will be connected with the APIM"
+            }
+        },
+        "instrumentationKeyForLogger": {
+            "type": "String",
+            "metadata": {
+                "description": "You can find the instrumentationKey vaule in the application insight resource - Properties - (the first line) INSTRUMENTATION KEY"
+            }
+        }
+    },
+    "variables": {},
+    "functions": [],
+    "resources": [
+        {
+            "type": "Microsoft.ApiManagement/service",
+            "apiVersion": "2021-08-01",
+            "name": "[parameters('apiManagementServiceName')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "[parameters('sku')]",
+                "capacity": "[parameters('skuCount')]"
+            },
+            "properties": {
+                "publisherEmail": "[parameters('publisherEmail')]",
+                "publisherName": "[parameters('publisherName')]"
+            }
+        },
+        {
+            "type": "Microsoft.ApiManagement/service/loggers",
+            "apiVersion": "2021-12-01-preview",
+            "name": "[concat(parameters('apiManagementServiceName'),'/', parameters('insightName'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service', parameters('apiManagementServiceName'))]"
+            ],
+            "properties": {
+                "credentials": {
+                    "instrumentationKey": "[parameters('instrumentationKeyForLogger')]"
+                },
+                "description": "Here is the custom description for the loggers.",
+                "isBuffered": true,
+                "loggerType": "applicationInsights",
+                "resourceId": "[parameters('insightId')]"
+            }
+        },
+        {
+            "type": "Microsoft.ApiManagement/service/diagnostics",
+            "apiVersion": "2021-12-01-preview",
+            "name": "[concat(parameters('apiManagementServiceName'),'/applicationinsights')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service', parameters('apiManagementServiceName'))]",
+                "[resourceId('Microsoft.ApiManagement/service/loggers', parameters('apiManagementServiceName'), parameters('insightName'))]"
+            ],
+            "properties": {
+                "alwaysLog": "allErrors",
+                "backend": {
+                    "request": {
+                        "body": {
+                            "bytes": 0
+                        }
+                    },
+                    "response": {
+                        "body": {
+                            "bytes": 0
+                        }
+                    }
+                },
+                "frontend": {
+                    "request": {
+                        "body": {
+                            "bytes": 0
+                        }
+                    },
+                    "response": {
+                        "body": {
+                            "bytes": 0
+                        }
+                    }
+                },
+                "httpCorrelationProtocol": "Legacy",
+                "logClientIp": true,
+                "loggerId": "[resourceId('Microsoft.ApiManagement/service/loggers', parameters('apiManagementServiceName'), parameters('insightName'))]",
+                "sampling": {
+                    "percentage": 100,
+                    "samplingType": "fixed"
+                },
+                "verbosity": "information"
+            }
+        }
+    ],
+    "outputs": {}
+}
