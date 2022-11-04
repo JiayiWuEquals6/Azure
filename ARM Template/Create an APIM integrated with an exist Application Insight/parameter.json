@@ -1,0 +1,33 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "apiManagementServiceName": {
+      "value": "APIMtestTemplate"
+    },
+    "publisherEmail": {
+      "value": ""
+    },
+    "publisherName": {
+      "value": "jiayiwu"
+    },
+    "sku": {
+      "value": "Developer"
+    },
+    "skuCount": {
+      "value": 1
+    },
+    "location": {
+      "value": "[resourceGroup().location]"
+    },
+    "insightId": {
+      "value": "/subscriptions/xxxxxxxxx/resourceGroups/xxxxxxxxxx/providers/microsoft.insights/components/wjy-test-apim-insight"
+    },
+    "insightName": {
+      "value": "wjy-test-apim-insight"
+    },
+    "instrumentationKeyForLogger": {
+      "value": "xxxxxxxxxxxxx"
+    }
+  }
+}
